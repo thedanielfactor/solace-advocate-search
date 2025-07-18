@@ -1,17 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-interface Advocate {
-  id?: number;
-  firstName: string;
-  lastName: string;
-  city: string;
-  degree: string;
-  specialties: string[];
-  yearsOfExperience: number;
-  phoneNumber: number;
-}
+import type { 
+  Advocate, 
+  ApiResponse, 
+  InputChangeHandler, 
+  ButtonClickHandler
+} from "@/types";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
@@ -20,17 +15,35 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
+    const fetchAdvocates = async (): Promise<void> => {
+      try {
+        console.log("fetching advocates...");
+        const response = await fetch("/api/advocates");
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const jsonResponse: ApiResponse<Advocate[]> = await response.json();
+        
+        if (jsonResponse.error) {
+          throw new Error(jsonResponse.error);
+        }
+        
         setAdvocates(jsonResponse.data);
         setFilteredAdvocates(jsonResponse.data);
         setIsLoading(false);
-      });
-    });
+      } catch (error) {
+        console.error("Error fetching advocates:", error);
+        setIsLoading(false);
+        // In a real app, you'd want to set an error state here
+      }
+    };
+
+    fetchAdvocates();
   }, []);
 
-  const onChange = (e) => {
+  const onChange: InputChangeHandler = (e) => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
 
@@ -49,7 +62,7 @@ export default function Home() {
     setFilteredAdvocates(filteredAdvocates);
   };
 
-  const onClick = () => {
+  const onClick: ButtonClickHandler = () => {
     console.log(advocates);
     setFilteredAdvocates(advocates);
   };
