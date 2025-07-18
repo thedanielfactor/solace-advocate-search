@@ -3,7 +3,33 @@ import { advocates } from "../../../db/schema";
 import { advocateData } from "../../../db/seed/advocates";
 
 export async function POST() {
-  const records = await db.insert(advocates).values(advocateData).returning();
+  try {
+    // Check if database is properly configured
+    if (!db) {
+      return Response.json(
+        { 
+          error: "Database not configured. Please set DATABASE_URL environment variable and ensure the database is running.",
+          instructions: [
+            "1. Create a .env file with: DATABASE_URL=<postgres connection string>",
+            "2. Start the database: docker compose up -d",
+            "3. Run migrations: npx drizzle-kit push",
+            "4. Try seeding again"
+          ]
+        },
+        { status: 400 }
+      );
+    }
 
-  return Response.json({ advocates: records });
+    const records = await db.insert(advocates).values(advocateData).returning();
+    return Response.json({ advocates: records });
+  } catch (error) {
+    console.error("Error seeding database:", error);
+    return Response.json(
+      { 
+        error: "Failed to seed database",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
+  }
 }
