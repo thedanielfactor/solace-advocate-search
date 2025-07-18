@@ -1,4 +1,3 @@
-import type { ApiResponse, Advocate } from "@/types";
 import db from "../../../db";
 import { advocates } from "../../../db/schema";
 import { advocateData } from "../../../db/seed/advocates";
