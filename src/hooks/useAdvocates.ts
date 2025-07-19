@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Advocate, ApiResponse } from "@/types";
 
 interface UseAdvocatesReturn {
@@ -14,7 +14,6 @@ interface UseAdvocatesReturn {
 
 export function useAdvocates(): UseAdvocatesReturn {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,9 +40,8 @@ export function useAdvocates(): UseAdvocatesReturn {
         throw new Error("No data received from server");
       }
       
-      setAdvocates(jsonResponse.data);
-      setFilteredAdvocates(jsonResponse.data);
-      setIsLoading(false);
+              setAdvocates(jsonResponse.data);
+        setIsLoading(false);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
       console.error("Error fetching advocates:", err);
@@ -52,15 +50,14 @@ export function useAdvocates(): UseAdvocatesReturn {
     }
   }, []);
 
-  // Filter advocates when search term changes
-  useEffect(() => {
+  // Memoized filtered advocates for better performance
+  const filteredAdvocates = useMemo(() => {
     if (!searchTerm.trim()) {
-      setFilteredAdvocates(advocates);
-      return;
+      return advocates;
     }
 
-    const filtered = advocates.filter((advocate) => {
-      const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+    return advocates.filter((advocate) => {
       return (
         advocate.firstName.toLowerCase().includes(searchLower) ||
         advocate.lastName.toLowerCase().includes(searchLower) ||
@@ -72,8 +69,6 @@ export function useAdvocates(): UseAdvocatesReturn {
         advocate.yearsOfExperience.toString().includes(searchTerm)
       );
     });
-
-    setFilteredAdvocates(filtered);
   }, [searchTerm, advocates]);
 
   // Initial data fetch
@@ -83,8 +78,7 @@ export function useAdvocates(): UseAdvocatesReturn {
 
   const resetSearch = useCallback((): void => {
     setSearchTerm("");
-    setFilteredAdvocates(advocates);
-  }, [advocates]);
+  }, []);
 
   const retry = useCallback((): void => {
     fetchAdvocates();
