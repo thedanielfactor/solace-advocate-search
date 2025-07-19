@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import type { InputChangeHandler, ButtonClickHandler } from "@/types";
 
 interface SearchBarProps {
@@ -8,6 +8,7 @@ interface SearchBarProps {
   placeholder?: string;
   disabled?: boolean;
   error?: string | null;
+  isLoading?: boolean;
 }
 
 export function SearchBar({
@@ -16,14 +17,33 @@ export function SearchBar({
   onReset,
   placeholder = "Search advocates...",
   disabled = false,
-  error
+  error,
+  isLoading = false
 }: SearchBarProps): JSX.Element {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Regain focus when search completes (isLoading changes from true to false)
+  useEffect(() => {
+    if (!isLoading && inputRef.current && searchTerm) {
+      // Small delay to ensure the DOM has updated
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, searchTerm]);
+
   const handleInputChange: InputChangeHandler = (e) => {
     onSearchChange(e.target.value);
   };
 
   const handleReset: ButtonClickHandler = () => {
     onReset();
+    // Focus the input after reset
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   return (
@@ -31,6 +51,7 @@ export function SearchBar({
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
         <div style={{ flex: 1, position: "relative" }}>
           <input
+            ref={inputRef}
             type="text"
             value={searchTerm}
             onChange={handleInputChange}
@@ -83,7 +104,11 @@ export function SearchBar({
       
       {searchTerm && (
         <p style={{ margin: "0.5rem 0 0 0", color: "#6c757d", fontSize: "0.875rem" }}>
-          Searching for: <strong>{searchTerm}</strong>
+          {isLoading ? (
+            <>Searching for: <strong>{searchTerm}</strong>...</>
+          ) : (
+            <>Searching for: <strong>{searchTerm}</strong></>
+          )}
         </p>
       )}
     </div>

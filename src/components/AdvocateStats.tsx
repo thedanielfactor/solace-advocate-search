@@ -60,12 +60,13 @@ const StatCard = memo(function StatCard({ title, value, icon, color }: StatCardP
 
 export const AdvocateStats = memo(function AdvocateStats({ 
   advocates, 
-  filteredCount 
+  filteredCount,
+  totalCount
 }: AdvocateStatsProps): JSX.Element | null {
   const stats = useMemo(() => {
-    const totalAdvocates = advocates.length;
-    const averageExperience = totalAdvocates > 0 
-      ? Math.round(advocates.reduce((sum, a) => sum + a.yearsOfExperience, 0) / totalAdvocates)
+    const totalAdvocates = totalCount || advocates.length;
+    const averageExperience = advocates.length > 0 
+      ? Math.round(advocates.reduce((sum, a) => sum + a.yearsOfExperience, 0) / advocates.length)
       : 0;
     
     const uniqueCities = new Set(advocates.map(a => a.city)).size;
@@ -78,7 +79,7 @@ export const AdvocateStats = memo(function AdvocateStats({
       uniqueCities,
       uniqueDegrees
     };
-  }, [advocates, filteredCount]);
+  }, [advocates, filteredCount, totalCount]);
 
   if (advocates.length === 0) {
     return null;
