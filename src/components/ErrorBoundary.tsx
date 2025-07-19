@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="error-boundary">
           <h2>Something went wrong</h2>
-          <p>We're sorry, but something unexpected happened. Please try refreshing the page.</p>
+          <p>We&apos;re sorry, but something unexpected happened. Please try refreshing the page.</p>
           {process.env.NODE_ENV === "development" && this.state.error && (
             <details style={{ whiteSpace: "pre-wrap" }}>
               <summary>Error Details (Development)</summary>
