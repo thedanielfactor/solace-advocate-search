@@ -3,6 +3,16 @@ export interface ApiResponse<T> {
   data: T;
   error?: string;
   message?: string;
+  pagination?: PaginationInfo;
+}
+
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 // Advocate Types

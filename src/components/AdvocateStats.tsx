@@ -4,6 +4,7 @@ import type { Advocate } from "@/types";
 interface AdvocateStatsProps {
   advocates: Advocate[];
   filteredCount: number;
+  totalCount?: number;
 }
 
 interface StatCardProps {

@@ -17,14 +17,20 @@ export default function Home() {
   
   const {
     advocates,
-    filteredAdvocates,
     isLoading,
     error,
     searchTerm,
     setSearchTerm,
     resetSearch,
     retry,
-  } = useAdvocates();
+    pagination,
+    loadMore,
+    hasMore,
+    totalCount,
+  } = useAdvocates({
+    pageSize: 20,
+    debounceMs: 300
+  });
 
   const handleViewChange = useCallback((view: "table" | "grid") => {
     setViewMode(view);
@@ -44,7 +50,8 @@ export default function Home() {
         {!isLoading && !error && advocates.length > 0 && (
           <AdvocateStats
             advocates={advocates}
-            filteredCount={filteredAdvocates.length}
+            filteredCount={pagination?.total || advocates.length}
+            totalCount={totalCount}
           />
         )}
 
@@ -56,7 +63,7 @@ export default function Home() {
           />
         )}
 
-        {isLoading && (
+        {isLoading && advocates.length === 0 && (
           <LoadingState 
             message="Loading advocates..." 
             showSkeleton={true}
@@ -75,7 +82,7 @@ export default function Home() {
 
         {!isLoading && !error && viewMode === "table" && (
           <AdvocateTable
-            advocates={filteredAdvocates}
+            advocates={advocates}
             isLoading={isLoading}
             error={error}
           />
@@ -83,10 +90,54 @@ export default function Home() {
 
         {!isLoading && !error && viewMode === "grid" && (
           <AdvocateGrid
-            advocates={filteredAdvocates}
+            advocates={advocates}
             isLoading={isLoading}
             error={error}
+            onLoadMore={loadMore}
+            hasMore={hasMore}
           />
+        )}
+
+        {/* Load more indicator */}
+        {isLoading && advocates.length > 0 && (
+          <div style={{ 
+            textAlign: "center", 
+            padding: "1rem",
+            color: "#6c757d"
+          }}>
+            Loading more advocates...
+          </div>
+        )}
+
+        {/* Pagination info */}
+        {!isLoading && !error && pagination && (
+          <div style={{ 
+            textAlign: "center", 
+            padding: "1rem",
+            color: "#6c757d",
+            fontSize: "0.875rem"
+          }}>
+            Showing {advocates.length} of {pagination.total} advocates
+            {pagination.hasNext && (
+              <div style={{ marginTop: "0.5rem" }}>
+                <button
+                  onClick={loadMore}
+                  disabled={isLoading}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: isLoading ? "not-allowed" : "pointer",
+                    opacity: isLoading ? 0.6 : 1
+                  }}
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </Layout>
     </ErrorBoundary>
