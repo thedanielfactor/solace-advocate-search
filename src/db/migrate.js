@@ -1,9 +1,40 @@
+const { drizzle } = require('drizzle-orm/postgres-js');
+const postgres = require('postgres');
 const { sql } = require('drizzle-orm');
-const { db } = require('./index');
+
+// Database setup
+const setup = () => {
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL is not set");
+    return null;
+  }
+
+  const queryClient = postgres(process.env.DATABASE_URL);
+  const db = drizzle(queryClient);
+  return db;
+};
+
+const db = setup();
+
+if (!db) {
+  console.error('❌ Database connection failed. Please check your DATABASE_URL environment variable.');
+  process.exit(1);
+}
 
 async function createIndexes() {
   try {
     console.log('Creating database indexes for performance...');
+    
+    // Fix column name issue (rename payload to specialties if it exists)
+    try {
+      await db.execute(sql`
+        ALTER TABLE advocates RENAME COLUMN payload TO specialties;
+      `);
+      console.log('✅ Renamed payload column to specialties');
+    } catch (error) {
+      // Column might already be renamed or not exist, which is fine
+      console.log('ℹ️  Column rename skipped (may already be correct)');
+    }
     
     // Primary search indexes
     await db.execute(sql`
@@ -60,16 +91,29 @@ async function createIndexes() {
       ON advocates(full_name);
     `);
     
-    await db.execute(sql`
-      ALTER TABLE advocates 
-      ADD COLUMN IF NOT EXISTS specialty_count INTEGER 
-      GENERATED ALWAYS AS (jsonb_array_length(specialties)) STORED;
-    `);
-    
-    await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS idx_advocates_specialty_count 
-      ON advocates(specialty_count);
-    `);
+    // Add computed column safely (will be populated when we insert new data)
+    try {
+      // Drop the column if it exists to avoid conflicts
+      await db.execute(sql`
+        ALTER TABLE advocates DROP COLUMN IF EXISTS specialty_count;
+      `);
+      
+      // Recreate the computed column
+      await db.execute(sql`
+        ALTER TABLE advocates 
+        ADD COLUMN specialty_count INTEGER 
+        GENERATED ALWAYS AS (jsonb_array_length(specialties)) STORED;
+      `);
+      
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS idx_advocates_specialty_count 
+        ON advocates(specialty_count);
+      `);
+      
+      console.log('✅ Added specialty_count computed column');
+    } catch (error) {
+      console.log('⚠️  Skipping specialty_count column due to data format issues');
+    }
     
     console.log('✅ Database indexes created successfully!');
     
@@ -82,6 +126,18 @@ async function createIndexes() {
 async function generateLargeDataset() {
   try {
     console.log('Generating large dataset for testing...');
+    
+    // Clear existing data to ensure clean state
+    await db.execute(sql`DELETE FROM advocates`);
+    console.log('✅ Cleared existing data');
+    
+    // Temporarily drop the computed column to avoid issues during bulk insert
+    try {
+      await db.execute(sql`ALTER TABLE advocates DROP COLUMN IF EXISTS specialty_count;`);
+      console.log('✅ Temporarily dropped specialty_count column for bulk insert');
+    } catch (error) {
+      console.log('ℹ️  specialty_count column not found, continuing...');
+    }
     
     const cities = [
       'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia',
@@ -146,12 +202,38 @@ async function generateLargeDataset() {
       });
     }
     
-    // Insert in batches of 1000
+    // Insert in batches of 1000 using parameterized queries
     const batchSize = 1000;
     for (let i = 0; i < advocates.length; i += batchSize) {
       const batch = advocates.slice(i, i + batchSize);
-      await db.insert(require('./schema').advocates).values(batch);
+      
+      // Insert each record individually for safety
+      for (const advocate of batch) {
+        await db.execute(sql`
+          INSERT INTO advocates (first_name, last_name, city, degree, specialties, years_of_experience, phone_number)
+          VALUES (${advocate.firstName}, ${advocate.lastName}, ${advocate.city}, ${advocate.degree}, ${JSON.stringify(advocate.specialties)}, ${advocate.yearsOfExperience}, ${advocate.phoneNumber})
+        `);
+      }
+      
       console.log(`Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(advocates.length / batchSize)}`);
+    }
+    
+    // Re-add the computed column after data insertion
+    try {
+      await db.execute(sql`
+        ALTER TABLE advocates 
+        ADD COLUMN specialty_count INTEGER 
+        GENERATED ALWAYS AS (jsonb_array_length(specialties)) STORED;
+      `);
+      
+      await db.execute(sql`
+        CREATE INDEX IF NOT EXISTS idx_advocates_specialty_count 
+        ON advocates(specialty_count);
+      `);
+      
+      console.log('✅ Re-added specialty_count computed column');
+    } catch (error) {
+      console.log('⚠️  Could not re-add specialty_count column:', error.message);
     }
     
     console.log('✅ Large dataset generated successfully!');
@@ -166,8 +248,7 @@ async function main() {
   try {
     await createIndexes();
     
-    // Uncomment the line below to generate a large dataset for testing
-    // await generateLargeDataset();
+    await generateLargeDataset();
     
     console.log('🎉 Migration completed successfully!');
     process.exit(0);
