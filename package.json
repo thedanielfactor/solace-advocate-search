@@ -9,24 +9,38 @@
     "lint": "next lint",
     "generate": "drizzle-kit generate",
     "migrate:up": "node ./src/db/migrate.js",
-    "seed": "node --loader esbuild-register/loader -r esbuild-register ./src/db/seed/index.ts"
+    "seed": "node --loader esbuild-register/loader -r esbuild-register ./src/db/seed/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
     "drizzle-orm": "^0.32.1",
     "next": "^14.2.19",
     "postgres": "^3.4.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "validator": "^13.15.15",
+    "xss": "^1.0.15",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.14.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/validator": "^13.15.2",
     "drizzle-kit": "^0.23.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.5",
+    "jest": "^30.0.4",
+    "jest-environment-jsdom": "^30.0.4",
     "postcss": "^8.4.40",
     "tailwindcss": "^3.4.7",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.5.4"
   }
 }
