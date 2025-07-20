@@ -7,10 +7,10 @@ interface PageSizeSelectorProps {
 }
 
 const pageSizeOptions = [
-  { value: 10, label: "10 per page" },
-  { value: 20, label: "20 per page" },
-  { value: 50, label: "50 per page" },
-  { value: 100, label: "100 per page" }
+  { value: 10, label: "10 per load" },
+  { value: 20, label: "20 per load" },
+  { value: 50, label: "50 per load" },
+  { value: 100, label: "100 per load" }
 ];
 
 export const PageSizeSelector = memo(function PageSizeSelector({
@@ -43,7 +43,7 @@ export const PageSizeSelector = memo(function PageSizeSelector({
           whiteSpace: "nowrap"
         }}
       >
-        Results per page:
+        Results to load:
       </label>
       <select
         id="page-size"

@@ -59,15 +59,18 @@ export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptio
   const fetchAdvocates = useCallback(async (
     page: number = 1,
     search: string = "",
-    append: boolean = false
+    append: boolean = false,
+    customPageSize?: number
   ): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
       
+      const limitToUse = customPageSize || pageSize;
+      
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: pageSize.toString(),
+        limit: limitToUse.toString(),
         sortBy: sortBy,
         sortOrder: sortOrder,
         ...(search && { search })
@@ -110,43 +113,42 @@ export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptio
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [pageSize, sortBy, sortOrder]);
+  }, [sortBy, sortOrder]); // Removed pageSize from dependencies
 
   // Load more data
   const loadMore = useCallback(() => {
     if (!isLoading && pagination?.hasNext) {
-      fetchAdvocates(currentPage + 1, debouncedSearchTerm, true);
+      fetchAdvocates(currentPage + 1, debouncedSearchTerm, true, pageSize);
     }
-  }, [currentPage, pagination?.hasNext, isLoading, debouncedSearchTerm, fetchAdvocates]);
+  }, [currentPage, pagination?.hasNext, isLoading, debouncedSearchTerm, fetchAdvocates, pageSize]);
 
   // Search effect
   useEffect(() => {
     setCurrentPage(1);
-    fetchAdvocates(1, debouncedSearchTerm, false);
+    fetchAdvocates(1, debouncedSearchTerm, false, pageSize);
   }, [debouncedSearchTerm, fetchAdvocates]);
 
   // Initial data fetch
   useEffect(() => {
-    fetchAdvocates(1, "", false);
+    fetchAdvocates(1, "", false, pageSize);
   }, [fetchAdvocates]);
 
   const retry = useCallback((): void => {
-    fetchAdvocates(currentPage, debouncedSearchTerm, false);
-  }, [fetchAdvocates, currentPage, debouncedSearchTerm]);
+    fetchAdvocates(currentPage, debouncedSearchTerm, false, pageSize);
+  }, [fetchAdvocates, currentPage, debouncedSearchTerm, pageSize]);
 
   const setSorting = useCallback((newSortBy: string, newSortOrder: 'asc' | 'desc') => {
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
     setCurrentPage(1);
-    fetchAdvocates(1, debouncedSearchTerm, false);
-  }, [fetchAdvocates, debouncedSearchTerm]);
+    fetchAdvocates(1, debouncedSearchTerm, false, pageSize);
+  }, [fetchAdvocates, debouncedSearchTerm, pageSize]);
 
   const handlePageSizeChange = useCallback((newPageSize: number) => {
     setPageSize(newPageSize);
-    setCurrentPage(1);
-    setAdvocates([]); // Clear existing data when page size changes
-    fetchAdvocates(1, debouncedSearchTerm, false);
-  }, [fetchAdvocates, debouncedSearchTerm]);
+    // Don't reset current page or clear existing data
+    // Just update the page size for future loads
+  }, []);
 
   return {
     advocates,

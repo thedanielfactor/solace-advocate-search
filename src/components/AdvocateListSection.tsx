@@ -12,6 +12,8 @@ interface AdvocateListSectionProps {
   onLoadMore: () => void;
   hasMore: boolean;
   onRetry: () => void;
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
 }
 
 // Skeleton component for loading states
@@ -83,7 +85,9 @@ export const AdvocateListSection = memo(function AdvocateListSection({
   viewMode,
   onLoadMore,
   hasMore,
-  onRetry
+  onRetry,
+  pageSize,
+  onPageSizeChange
 }: AdvocateListSectionProps): JSX.Element {
   // Memoized props to prevent unnecessary re-renders
   const tableProps = useMemo(() => ({
@@ -97,8 +101,10 @@ export const AdvocateListSection = memo(function AdvocateListSection({
     isLoading,
     error,
     onLoadMore,
-    hasMore
-  }), [advocates, isLoading, error, onLoadMore, hasMore]);
+    hasMore,
+    pageSize: pageSize === undefined ? undefined : pageSize,
+    onPageSizeChange: onPageSizeChange === undefined ? undefined : onPageSizeChange
+  }), [advocates, isLoading, error, onLoadMore, hasMore, pageSize, onPageSizeChange]);
 
   const errorStateProps = useMemo(() => ({
     title: "Failed to load advocates",

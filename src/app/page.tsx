@@ -4,20 +4,17 @@ import React, { useState, useCallback, useMemo } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IsolatedSearchSection } from "@/components/IsolatedSearchSection";
 import { AdvocateListSection } from "@/components/AdvocateListSection";
-import { ViewToggle } from "@/components/ViewToggle";
+import { ViewTabGroup } from "@/components/ViewTabGroup";
 import { AdvocateStats } from "@/components/AdvocateStats";
 import { SortControls } from "@/components/SortControls";
-import { PageSizeSelector } from "@/components/PageSizeSelector";
 import { Layout } from "@/components/Layout";
 import { useAdvocates } from "@/hooks/useAdvocates";
 
 // Memoized components to prevent unnecessary re-renders
 const MemoizedIsolatedSearchSection = React.memo(IsolatedSearchSection);
 const MemoizedAdvocateStats = React.memo(AdvocateStats);
-const MemoizedViewToggle = React.memo(ViewToggle);
 const MemoizedAdvocateListSection = React.memo(AdvocateListSection);
 const MemoizedSortControls = React.memo(SortControls);
-const MemoizedPageSizeSelector = React.memo(PageSizeSelector);
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
@@ -68,11 +65,13 @@ export default function Home() {
     isLoading
   }), [advocates, pagination?.total, totalCount, isLoading]);
 
-  const viewToggleProps = useMemo(() => ({
-    currentView: viewMode,
-    onViewChange: handleViewChange,
-    disabled: isLoading
-  }), [viewMode, handleViewChange, isLoading]);
+  const viewTabGroup = useMemo(() => (
+    <ViewTabGroup
+      currentView={viewMode}
+      onViewChange={handleViewChange}
+      disabled={isLoading}
+    />
+  ), [viewMode, handleViewChange, isLoading]);
 
   const sortControlsProps = useMemo(() => ({
     sortBy,
@@ -81,11 +80,7 @@ export default function Home() {
     disabled: isLoading
   }), [sortBy, sortOrder, handleSortChange, isLoading]);
 
-  const pageSizeProps = useMemo(() => ({
-    pageSize,
-    onPageSizeChange: handlePageSizeChange,
-    disabled: isLoading
-  }), [pageSize, handlePageSizeChange, isLoading]);
+
 
   const advocateListProps = useMemo(() => ({
     advocates,
@@ -94,8 +89,10 @@ export default function Home() {
     viewMode,
     onLoadMore: handleLoadMore,
     hasMore,
-    onRetry: retry
-  }), [advocates, isLoading, error, viewMode, handleLoadMore, hasMore, retry]);
+    onRetry: retry,
+    pageSize,
+    onPageSizeChange: handlePageSizeChange
+  }), [advocates, isLoading, error, viewMode, handleLoadMore, hasMore, retry, pageSize, handlePageSizeChange]);
 
   // Isolated search section that manages its own state
   const searchSection = useMemo(() => (
@@ -110,24 +107,13 @@ export default function Home() {
     const stats = <MemoizedAdvocateStats {...advocateStatsProps} />;
 
     // Render view toggle if we have data
-    const viewToggle = !isLoading && !error && advocates.length > 0 ? (
-      <MemoizedViewToggle {...viewToggleProps} />
-    ) : null;
+    // const viewToggle = !isLoading && !error && advocates.length > 0 ? (
+    //   <MemoizedViewToggle {...viewToggleProps} />
+    // ) : null;
 
     // Render sort controls if we have data
     const sortControls = !isLoading && !error && advocates.length > 0 ? (
-      <div style={{ 
-        display: "flex", 
-        gap: "1rem", 
-        alignItems: "center", 
-        flexWrap: "wrap",
-        justifyContent: "space-between"
-      }}>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-          <MemoizedSortControls {...sortControlsProps} />
-        </div>
-        <MemoizedPageSizeSelector {...pageSizeProps} />
-      </div>
+      <MemoizedSortControls {...sortControlsProps} />
     ) : null;
 
     // Render the isolated list section
@@ -147,16 +133,15 @@ export default function Home() {
 
     return {
       stats,
-      viewToggle,
+      viewTabGroup,
       sortControls,
       listSection,
       paginationInfo
     };
   }, [
     advocateStatsProps,
-    viewToggleProps,
+    viewTabGroup,
     sortControlsProps,
-    pageSizeProps,
     advocateListProps,
     isLoading,
     error,
@@ -169,7 +154,7 @@ export default function Home() {
       <Layout>
         {searchSection}
         {content.stats}
-        {content.viewToggle}
+        {content.viewTabGroup}
         {content.sortControls}
         {content.listSection}
         {content.paginationInfo}

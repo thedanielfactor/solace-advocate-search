@@ -5,7 +5,7 @@ interface LayoutProps {
   title?: string;
 }
 
-export function Layout({ children, title = "Solace Health Advocate Search" }: LayoutProps): JSX.Element {
+export function Layout({ children, title = "Solace Health" }: LayoutProps): JSX.Element {
   return (
     <div 
       style={{
@@ -52,8 +52,8 @@ export function Layout({ children, title = "Solace Health Advocate Search" }: La
       
       <footer 
         style={{
-          backgroundColor: "white",
-          borderTop: "1px solid #dee2e6",
+          backgroundColor: "#265B4E",
+          borderTop: "1px solid #1a4539",
           padding: "1rem 0",
           marginTop: "auto"
         }}
@@ -64,7 +64,7 @@ export function Layout({ children, title = "Solace Health Advocate Search" }: La
             margin: "0 auto",
             padding: "0 1rem",
             textAlign: "center",
-            color: "#6c757d",
+            color: "white",
             fontSize: "0.875rem"
           }}
         >

@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import type { Advocate } from "@/types";
 import { AdvocateCard } from "./AdvocateCard";
+import { PageSizeSelector } from "./PageSizeSelector";
 
 interface AdvocateGridProps {
   advocates: Advocate[];
@@ -8,6 +9,8 @@ interface AdvocateGridProps {
   error?: string | null;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  pageSize?: number | undefined;
+  onPageSizeChange?: ((size: number) => void) | undefined;
 }
 
 export const AdvocateGrid = memo(function AdvocateGrid({ 
@@ -15,7 +18,9 @@ export const AdvocateGrid = memo(function AdvocateGrid({
   isLoading = false, 
   error = null,
   onLoadMore,
-  hasMore = false
+  hasMore = false,
+  pageSize,
+  onPageSizeChange
 }: AdvocateGridProps): JSX.Element {
   if (isLoading) {
     return (
@@ -101,7 +106,14 @@ export const AdvocateGrid = memo(function AdvocateGrid({
       </div>
       
       {hasMore && onLoadMore && (
-        <div style={{ textAlign: "center", padding: "2rem" }}>
+        <div style={{ 
+          textAlign: "center", 
+          padding: "2rem",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "1rem"
+        }}>
           <button
             onClick={onLoadMore}
             disabled={isLoading}
@@ -119,6 +131,14 @@ export const AdvocateGrid = memo(function AdvocateGrid({
           >
             {isLoading ? "Loading..." : "Load More Advocates"}
           </button>
+          
+          {pageSize && onPageSizeChange && (
+            <PageSizeSelector
+              pageSize={pageSize}
+              onPageSizeChange={onPageSizeChange}
+              disabled={isLoading}
+            />
+          )}
         </div>
       )}
     </>
