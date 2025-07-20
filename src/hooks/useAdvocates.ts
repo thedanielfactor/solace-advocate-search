@@ -13,7 +13,9 @@ interface UseAdvocatesReturn {
   currentPage: number;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
+  pageSize: number;
   setSorting: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
+  setPageSize: (size: number) => void;
 }
 
 interface UseAdvocatesOptions {
@@ -39,7 +41,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptions = {}): UseAdvocatesReturn {
-  const { pageSize = 20, debounceMs = 300 } = options;
+  const { pageSize: initialPageSize = 20, debounceMs = 300 } = options;
   
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +51,7 @@ export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptio
   const [totalCount, setTotalCount] = useState(0);
   const [sortBy, setSortBy] = useState('lastName');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [pageSize, setPageSize] = useState(initialPageSize);
   
   // Debounced search term
   const debouncedSearchTerm = useDebounce(searchTerm, debounceMs);
@@ -138,6 +141,13 @@ export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptio
     fetchAdvocates(1, debouncedSearchTerm, false);
   }, [fetchAdvocates, debouncedSearchTerm]);
 
+  const handlePageSizeChange = useCallback((newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+    setAdvocates([]); // Clear existing data when page size changes
+    fetchAdvocates(1, debouncedSearchTerm, false);
+  }, [fetchAdvocates, debouncedSearchTerm]);
+
   return {
     advocates,
     isLoading,
@@ -150,6 +160,8 @@ export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptio
     currentPage,
     sortBy,
     sortOrder,
+    pageSize,
     setSorting,
+    setPageSize: handlePageSizeChange,
   };
 } 

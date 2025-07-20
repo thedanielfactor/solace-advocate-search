@@ -7,6 +7,7 @@ import { AdvocateListSection } from "@/components/AdvocateListSection";
 import { ViewToggle } from "@/components/ViewToggle";
 import { AdvocateStats } from "@/components/AdvocateStats";
 import { SortControls } from "@/components/SortControls";
+import { PageSizeSelector } from "@/components/PageSizeSelector";
 import { Layout } from "@/components/Layout";
 import { useAdvocates } from "@/hooks/useAdvocates";
 
@@ -16,6 +17,7 @@ const MemoizedAdvocateStats = React.memo(AdvocateStats);
 const MemoizedViewToggle = React.memo(ViewToggle);
 const MemoizedAdvocateListSection = React.memo(AdvocateListSection);
 const MemoizedSortControls = React.memo(SortControls);
+const MemoizedPageSizeSelector = React.memo(PageSizeSelector);
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
@@ -32,7 +34,9 @@ export default function Home() {
     totalCount,
     sortBy,
     sortOrder,
+    pageSize,
     setSorting,
+    setPageSize,
   } = useAdvocates(searchTerm, {
     pageSize: 20,
     debounceMs: 300
@@ -50,6 +54,10 @@ export default function Home() {
   const handleSortChange = useCallback((newSortBy: string, newSortOrder: 'asc' | 'desc') => {
     setSorting(newSortBy, newSortOrder);
   }, [setSorting]);
+
+  const handlePageSizeChange = useCallback((newPageSize: number) => {
+    setPageSize(newPageSize);
+  }, [setPageSize]);
 
 
 
@@ -72,6 +80,12 @@ export default function Home() {
     onSortChange: handleSortChange,
     disabled: isLoading
   }), [sortBy, sortOrder, handleSortChange, isLoading]);
+
+  const pageSizeProps = useMemo(() => ({
+    pageSize,
+    onPageSizeChange: handlePageSizeChange,
+    disabled: isLoading
+  }), [pageSize, handlePageSizeChange, isLoading]);
 
   const advocateListProps = useMemo(() => ({
     advocates,
@@ -102,7 +116,18 @@ export default function Home() {
 
     // Render sort controls if we have data
     const sortControls = !isLoading && !error && advocates.length > 0 ? (
-      <MemoizedSortControls {...sortControlsProps} />
+      <div style={{ 
+        display: "flex", 
+        gap: "1rem", 
+        alignItems: "center", 
+        flexWrap: "wrap",
+        justifyContent: "space-between"
+      }}>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+          <MemoizedSortControls {...sortControlsProps} />
+        </div>
+        <MemoizedPageSizeSelector {...pageSizeProps} />
+      </div>
     ) : null;
 
     // Render the isolated list section
@@ -131,6 +156,7 @@ export default function Home() {
     advocateStatsProps,
     viewToggleProps,
     sortControlsProps,
+    pageSizeProps,
     advocateListProps,
     isLoading,
     error,

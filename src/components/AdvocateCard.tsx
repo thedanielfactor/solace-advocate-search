@@ -15,7 +15,7 @@ export const AdvocateCard = memo(function AdvocateCard({
         borderRadius: "8px",
         border: "1px solid #dee2e6",
         padding: "1.5rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "0 3px 5px rgba(0,0,0,0.1)",
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
         cursor: "pointer",
         position: "relative",

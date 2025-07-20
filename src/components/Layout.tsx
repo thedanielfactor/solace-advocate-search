@@ -5,7 +5,7 @@ interface LayoutProps {
   title?: string;
 }
 
-export function Layout({ children, title = "Solace Advocates" }: LayoutProps): JSX.Element {
+export function Layout({ children, title = "Solace Health Advocate Search" }: LayoutProps): JSX.Element {
   return (
     <div 
       style={{
@@ -16,10 +16,10 @@ export function Layout({ children, title = "Solace Advocates" }: LayoutProps): J
     >
       <header 
         style={{
-          backgroundColor: "white",
-          borderBottom: "1px solid #dee2e6",
+          backgroundColor: "#265B4E",
+          borderBottom: "1px solid #1a4539",
           padding: "1rem 0",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
         }}
       >
         <div 
@@ -30,11 +30,9 @@ export function Layout({ children, title = "Solace Advocates" }: LayoutProps): J
           }}
         >
           <h1 
+            className="header-title"
             style={{
-              margin: 0,
-              color: "#343a40",
-              fontSize: "1.75rem",
-              fontWeight: "600"
+              margin: 0
             }}
           >
             {title}
@@ -70,7 +68,7 @@ export function Layout({ children, title = "Solace Advocates" }: LayoutProps): J
             fontSize: "0.875rem"
           }}
         >
-          © 2024 Solace Advocates. Built with Next.js and TypeScript.
+          © 2024 Solace Health. Built with Next.js and TypeScript.
         </div>
       </footer>
     </div>
