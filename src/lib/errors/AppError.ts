@@ -201,7 +201,7 @@ export interface ErrorResponse {
 // Helper function to convert AppError to ErrorResponse
 export function toErrorResponse(error: AppError, path?: string): ErrorResponse {
   const response: ErrorResponse = {
-    error: error.name,
+    error: error.constructor.name,
     message: error.message,
     code: error.code,
     statusCode: error.statusCode,

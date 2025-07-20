@@ -9,8 +9,19 @@ export class AdvocateController {
       const { searchParams } = new URL(request.url);
       
       // Parse and validate pagination parameters
-      const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+      const pageParam = searchParams.get('page');
+      const limitParam = searchParams.get('limit');
+      
+      const page = pageParam ? parseInt(pageParam) : 1;
+      const limit = limitParam ? parseInt(limitParam) : 20;
+      
+      // Validate pagination parameters
+      if (pageParam && (isNaN(page) || page < 1)) {
+        throw new InvalidParameterError('page', 'Page must be a positive integer');
+      }
+      if (limitParam && (isNaN(limit) || limit < 1 || limit > 100)) {
+        throw new InvalidParameterError('limit', 'Limit must be between 1 and 100');
+      }
       
       // Parse filters
       const filters: AdvocateFilters = {
@@ -58,7 +69,9 @@ export class AdvocateController {
           data: [] as never,
           error: errorResponse.error,
           message: errorResponse.message,
-          code: errorResponse.code
+          code: errorResponse.code,
+          parameter: errorResponse.parameter,
+          field: errorResponse.field
         }, 
         { status: appError.statusCode }
       );
@@ -98,7 +111,9 @@ export class AdvocateController {
           data: null as never,
           error: errorResponse.error,
           message: errorResponse.message,
-          code: errorResponse.code
+          code: errorResponse.code,
+          parameter: errorResponse.parameter,
+          field: errorResponse.field
         }, 
         { status: appError.statusCode }
       );
@@ -133,7 +148,9 @@ export class AdvocateController {
           data: [] as never,
           error: errorResponse.error,
           message: errorResponse.message,
-          code: errorResponse.code
+          code: errorResponse.code,
+          parameter: errorResponse.parameter,
+          field: errorResponse.field
         }, 
         { status: appError.statusCode }
       );
