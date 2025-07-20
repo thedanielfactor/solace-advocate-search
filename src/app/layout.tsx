@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Style_Script } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+const styleScript = Style_Script({ 
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-style-script"
+});
 
 export const metadata: Metadata = {
   title: "Solace Candidate Assignment",
@@ -16,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} ${styleScript.variable}`}>{children}</body>
     </html>
   );
 }

@@ -1,17 +1,26 @@
 import React, { memo } from "react";
 import type { Advocate } from "@/types";
 import { AdvocateCard } from "./AdvocateCard";
+import { PageSizeSelector } from "./PageSizeSelector";
 
 interface AdvocateGridProps {
   advocates: Advocate[];
   isLoading?: boolean;
   error?: string | null;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  pageSize?: number | undefined;
+  onPageSizeChange?: ((size: number) => void) | undefined;
 }
 
 export const AdvocateGrid = memo(function AdvocateGrid({ 
   advocates, 
   isLoading = false, 
-  error = null 
+  error = null,
+  onLoadMore,
+  hasMore = false,
+  pageSize,
+  onPageSizeChange
 }: AdvocateGridProps): JSX.Element {
   if (isLoading) {
     return (
@@ -79,20 +88,59 @@ export const AdvocateGrid = memo(function AdvocateGrid({
   }
 
   return (
-    <div 
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-        gap: "1.5rem",
-        padding: "1rem 0"
-      }}
-    >
-      {advocates.map((advocate, index) => (
-        <AdvocateCard
-          key={advocate.id || index}
-          advocate={advocate}
-        />
-      ))}
-    </div>
+    <>
+      <div 
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gap: "1.5rem",
+          padding: "1rem 0"
+        }}
+      >
+        {advocates.map((advocate, index) => (
+          <AdvocateCard
+            key={advocate.id || index}
+            advocate={advocate}
+          />
+        ))}
+      </div>
+      
+      {hasMore && onLoadMore && (
+        <div style={{ 
+          textAlign: "center", 
+          padding: "2rem",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "1rem"
+        }}>
+          <button
+            onClick={onLoadMore}
+            disabled={isLoading}
+            style={{
+              padding: "0.75rem 1.5rem",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: isLoading ? "not-allowed" : "pointer",
+              opacity: isLoading ? 0.6 : 1,
+              fontSize: "1rem",
+              fontWeight: "500"
+            }}
+          >
+            {isLoading ? "Loading..." : "Load More Advocates"}
+          </button>
+          
+          {pageSize && onPageSizeChange && (
+            <PageSizeSelector
+              pageSize={pageSize}
+              onPageSizeChange={onPageSizeChange}
+              disabled={isLoading}
+            />
+          )}
+        </div>
+      )}
+    </>
   );
 }); 

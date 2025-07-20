@@ -4,6 +4,8 @@ import type { Advocate } from "@/types";
 interface AdvocateStatsProps {
   advocates: Advocate[];
   filteredCount: number;
+  totalCount?: number;
+  isLoading?: boolean;
 }
 
 interface StatCardProps {
@@ -23,7 +25,12 @@ const StatCard = memo(function StatCard({ title, value, icon, color }: StatCardP
         padding: "1rem",
         textAlign: "center",
         flex: 1,
-        minWidth: "120px"
+        minWidth: "120px",
+        height: "120px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
       }}
     >
       <div 
@@ -39,7 +46,10 @@ const StatCard = memo(function StatCard({ title, value, icon, color }: StatCardP
           fontSize: "1.5rem",
           fontWeight: "600",
           color,
-          marginBottom: "0.25rem"
+          marginBottom: "0.25rem",
+          minHeight: "1.5rem",
+          display: "flex",
+          alignItems: "center"
         }}
       >
         {value}
@@ -48,7 +58,10 @@ const StatCard = memo(function StatCard({ title, value, icon, color }: StatCardP
         style={{
           fontSize: "0.875rem",
           color: "#6c757d",
-          fontWeight: "500"
+          fontWeight: "500",
+          minHeight: "1.25rem",
+          display: "flex",
+          alignItems: "center"
         }}
       >
         {title}
@@ -59,12 +72,14 @@ const StatCard = memo(function StatCard({ title, value, icon, color }: StatCardP
 
 export const AdvocateStats = memo(function AdvocateStats({ 
   advocates, 
-  filteredCount 
-}: AdvocateStatsProps): JSX.Element | null {
+  filteredCount,
+  totalCount,
+  isLoading = false
+}: AdvocateStatsProps): JSX.Element {
   const stats = useMemo(() => {
-    const totalAdvocates = advocates.length;
-    const averageExperience = totalAdvocates > 0 
-      ? Math.round(advocates.reduce((sum, a) => sum + a.yearsOfExperience, 0) / totalAdvocates)
+    const totalAdvocates = totalCount || advocates.length;
+    const averageExperience = advocates.length > 0 
+      ? Math.round(advocates.reduce((sum, a) => sum + a.yearsOfExperience, 0) / advocates.length)
       : 0;
     
     const uniqueCities = new Set(advocates.map(a => a.city)).size;
@@ -77,11 +92,10 @@ export const AdvocateStats = memo(function AdvocateStats({
       uniqueCities,
       uniqueDegrees
     };
-  }, [advocates, filteredCount]);
+  }, [advocates, filteredCount, totalCount]);
 
-  if (advocates.length === 0) {
-    return null;
-  }
+  // Always render to prevent layout shifts, but show loading state when appropriate
+  const showLoading = isLoading || advocates.length === 0;
 
   return (
     <div style={{ marginBottom: "2rem" }}>
@@ -99,36 +113,37 @@ export const AdvocateStats = memo(function AdvocateStats({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-          gap: "1rem"
+          gap: "1rem",
+          minHeight: "120px"
         }}
       >
         <StatCard
           title="Total Advocates"
-          value={stats.total}
+          value={showLoading ? "..." : stats.total}
           icon="👥"
           color="#007bff"
         />
         <StatCard
           title="Showing"
-          value={stats.filtered}
+          value={showLoading ? "..." : stats.filtered}
           icon="👁️"
           color="#28a745"
         />
         <StatCard
           title="Avg. Experience"
-          value={`${stats.averageExperience} years`}
+          value={showLoading ? "..." : `${stats.averageExperience} years`}
           icon="📈"
           color="#ffc107"
         />
         <StatCard
           title="Cities"
-          value={stats.uniqueCities}
+          value={showLoading ? "..." : stats.uniqueCities}
           icon="🌍"
           color="#17a2b8"
         />
         <StatCard
           title="Degrees"
-          value={stats.uniqueDegrees}
+          value={showLoading ? "..." : stats.uniqueDegrees}
           icon="🎓"
           color="#6f42c1"
         />
