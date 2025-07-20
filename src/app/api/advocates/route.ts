@@ -71,22 +71,28 @@ export async function GET(request: Request): Promise<Response> {
     
     const count = countResult[0]?.count || 0;
     
-    // Build the main query
-    let query = db.select().from(advocates);
-    
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
     // Apply sorting
     const sortColumn = getSortColumn(sortBy);
     const sortDirection = sortOrder === 'desc' ? desc : asc;
     
-    // Get paginated results
-    const data = await query
-      .orderBy(sortDirection(sortColumn))
-      .limit(limit)
-      .offset(offset);
+    // Build the main query with conditions and sorting
+    let data;
+    if (conditions.length > 0) {
+      data = await db
+        .select()
+        .from(advocates)
+        .where(and(...conditions))
+        .orderBy(sortDirection(sortColumn))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      data = await db
+        .select()
+        .from(advocates)
+        .orderBy(sortDirection(sortColumn))
+        .limit(limit)
+        .offset(offset);
+    }
     
     const totalPages = Math.ceil(count / limit);
     
