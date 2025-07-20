@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Advocate, ApiResponse, PaginationInfo } from "@/types";
 
 interface UseAdvocatesReturn {
   advocates: Advocate[];
   isLoading: boolean;
   error: string | null;
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  resetSearch: () => void;
   retry: () => void;
   pagination: PaginationInfo | null;
   loadMore: () => void;
   hasMore: boolean;
   totalCount: number;
   currentPage: number;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  setSorting: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
 }
 
 interface UseAdvocatesOptions {
@@ -38,16 +38,17 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export function useAdvocates(options: UseAdvocatesOptions = {}): UseAdvocatesReturn {
+export function useAdvocates(searchTerm: string = "", options: UseAdvocatesOptions = {}): UseAdvocatesReturn {
   const { pageSize = 20, debounceMs = 300 } = options;
   
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [sortBy, setSortBy] = useState('lastName');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Debounced search term
   const debouncedSearchTerm = useDebounce(searchTerm, debounceMs);
@@ -64,6 +65,8 @@ export function useAdvocates(options: UseAdvocatesOptions = {}): UseAdvocatesRet
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pageSize.toString(),
+        sortBy: sortBy,
+        sortOrder: sortOrder,
         ...(search && { search })
       });
       
@@ -104,7 +107,7 @@ export function useAdvocates(options: UseAdvocatesOptions = {}): UseAdvocatesRet
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [pageSize]);
+  }, [pageSize, sortBy, sortOrder]);
 
   // Load more data
   const loadMore = useCallback(() => {
@@ -124,26 +127,29 @@ export function useAdvocates(options: UseAdvocatesOptions = {}): UseAdvocatesRet
     fetchAdvocates(1, "", false);
   }, [fetchAdvocates]);
 
-  const resetSearch = useCallback((): void => {
-    setSearchTerm("");
-  }, []);
-
   const retry = useCallback((): void => {
     fetchAdvocates(currentPage, debouncedSearchTerm, false);
   }, [fetchAdvocates, currentPage, debouncedSearchTerm]);
+
+  const setSorting = useCallback((newSortBy: string, newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setCurrentPage(1);
+    fetchAdvocates(1, debouncedSearchTerm, false);
+  }, [fetchAdvocates, debouncedSearchTerm]);
 
   return {
     advocates,
     isLoading,
     error,
-    searchTerm,
-    setSearchTerm,
-    resetSearch,
     retry,
     pagination,
     loadMore,
     hasMore: pagination?.hasNext || false,
     totalCount,
     currentPage,
+    sortBy,
+    sortOrder,
+    setSorting,
   };
 } 
