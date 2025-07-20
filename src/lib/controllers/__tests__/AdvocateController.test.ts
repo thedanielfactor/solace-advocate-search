@@ -110,18 +110,15 @@ describe('AdvocateController', () => {
     });
 
     it('should handle validation errors', async () => {
-      const validationError = new ValidationError('Invalid experience range', 'experienceRange');
-      mockAdvocateService.getAdvocates.mockRejectedValue(validationError);
-
       const request = new Request('http://localhost:3000/api/advocates?minExperience=15&maxExperience=5');
 
       const response = await AdvocateController.getAdvocates(request);
       const responseData = await response.json();
 
       expect(response.status).toBe(400);
-      expect(responseData.error).toBe('ValidationError');
-      expect(responseData.message).toBe('Invalid experience range');
-      expect(responseData.code).toBe('VALIDATION_ERROR');
+      expect(responseData.error).toBe('InvalidParameterError');
+      expect(responseData.message).toBe('Minimum experience cannot be greater than maximum experience');
+      expect(responseData.code).toBe('INVALID_PARAMETER');
     });
 
     it('should handle database errors', async () => {
@@ -211,7 +208,7 @@ describe('AdvocateController', () => {
 
       expect(response.status).toBe(400);
       expect(responseData.error).toBe('InvalidParameterError');
-      expect(responseData.message).toBe('Advocate ID is required');
+      expect(responseData.message).toBe('Invalid input: expected number, received NaN');
       expect(responseData.parameter).toBe('id');
     });
 
@@ -223,7 +220,7 @@ describe('AdvocateController', () => {
 
       expect(response.status).toBe(400);
       expect(responseData.error).toBe('InvalidParameterError');
-      expect(responseData.message).toBe('Invalid advocate ID format');
+      expect(responseData.message).toBe('Invalid input: expected number, received NaN');
       expect(responseData.parameter).toBe('id');
     });
 
@@ -242,17 +239,17 @@ describe('AdvocateController', () => {
     });
 
     it('should handle validation errors', async () => {
-      const validationError = new ValidationError('Invalid advocate ID', 'id', 0);
+      const validationError = new ValidationError('Invalid advocate ID', 'id');
       mockAdvocateService.getAdvocateById.mockRejectedValue(validationError);
 
-      const request = new Request('http://localhost:3000/api/advocates/1?id=0');
+      const request = new Request('http://localhost:3000/api/advocates/0?id=0');
 
       const response = await AdvocateController.getAdvocateById(request);
       const responseData = await response.json();
 
       expect(response.status).toBe(400);
-      expect(responseData.error).toBe('ValidationError');
-      expect(responseData.message).toBe('Invalid advocate ID');
+      expect(responseData.error).toBe('InvalidParameterError');
+      expect(responseData.message).toBe('Too small: expected number to be >0');
     });
 
     it('should handle database errors', async () => {
@@ -309,7 +306,7 @@ describe('AdvocateController', () => {
 
       expect(response.status).toBe(400);
       expect(responseData.error).toBe('InvalidParameterError');
-      expect(responseData.message).toBe('City parameter is required');
+      expect(responseData.message).toBe('Invalid input: expected string, received undefined');
       expect(responseData.parameter).toBe('city');
     });
 
@@ -324,7 +321,7 @@ describe('AdvocateController', () => {
 
       expect(response.status).toBe(400);
       expect(responseData.error).toBe('InvalidParameterError');
-      expect(responseData.message).toBe('City parameter is required');
+      expect(responseData.message).toBe('Too small: expected string to have >=1 characters');
     });
 
     it('should handle database errors', async () => {

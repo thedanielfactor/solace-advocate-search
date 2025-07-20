@@ -1,41 +1,41 @@
 import { AdvocateService } from "../services/AdvocateService";
 import type { AdvocateFilters, AdvocateSortOptions, PaginationOptions } from "../repositories/AdvocateRepository";
 import { toErrorResponse, handleUnknownError, InvalidParameterError } from "../errors/AppError";
+import { DataProtectionMiddleware } from "../middleware";
 import type { ApiResponse } from "@/types";
 
 export class AdvocateController {
   static async getAdvocates(request: Request): Promise<Response> {
     try {
-      const { searchParams } = new URL(request.url);
+      // Use data protection middleware for validation and sanitization
+      const { data: validatedData } = await DataProtectionMiddleware.validateAndSanitizeGetAdvocates(request);
       
-      // Parse and validate pagination parameters
-      const pageParam = searchParams.get('page');
-      const limitParam = searchParams.get('limit');
+      // Extract validated and sanitized data
+      const {
+        page,
+        limit,
+        search,
+        city,
+        degree,
+        minExperience,
+        maxExperience,
+        sortBy,
+        sortOrder
+      } = validatedData;
       
-      const page = pageParam ? parseInt(pageParam) : 1;
-      const limit = limitParam ? parseInt(limitParam) : 20;
-      
-      // Validate pagination parameters
-      if (pageParam && (isNaN(page) || page < 1)) {
-        throw new InvalidParameterError('page', 'Page must be a positive integer');
-      }
-      if (limitParam && (isNaN(limit) || limit < 1 || limit > 100)) {
-        throw new InvalidParameterError('limit', 'Limit must be between 1 and 100');
-      }
-      
-      // Parse filters
+      // Build filters from validated data
       const filters: AdvocateFilters = {
-        search: searchParams.get('search') || undefined,
-        city: searchParams.get('city') || undefined,
-        degree: searchParams.get('degree') || undefined,
-        minExperience: searchParams.get('minExperience') ? parseInt(searchParams.get('minExperience')!) : undefined,
-        maxExperience: searchParams.get('maxExperience') ? parseInt(searchParams.get('maxExperience')!) : undefined,
+        search: search || undefined,
+        city: city || undefined,
+        degree: degree || undefined,
+        minExperience: minExperience || undefined,
+        maxExperience: maxExperience || undefined,
       };
       
-      // Parse sort options
+      // Build sort options from validated data
       const sortOptions: AdvocateSortOptions = {
-        sortBy: searchParams.get('sortBy') || 'lastName',
-        sortOrder: (searchParams.get('sortOrder') || 'asc') as 'asc' | 'desc'
+        sortBy: sortBy || 'lastName',
+        sortOrder: sortOrder || 'asc'
       };
       
       const pagination: PaginationOptions = { page, limit };
@@ -80,19 +80,10 @@ export class AdvocateController {
 
   static async getAdvocateById(request: Request): Promise<Response> {
     try {
-      const { searchParams } = new URL(request.url);
-      const id = searchParams.get('id');
+      // Use data protection middleware for validation and sanitization
+      const { data: validatedData } = await DataProtectionMiddleware.validateAndSanitizeGetAdvocateById(request);
       
-      if (!id) {
-        throw new InvalidParameterError('id', 'Advocate ID is required');
-      }
-      
-      const advocateId = parseInt(id);
-      if (isNaN(advocateId)) {
-        throw new InvalidParameterError('id', 'Invalid advocate ID format');
-      }
-      
-      const advocate = await AdvocateService.getAdvocateById(advocateId);
+      const advocate = await AdvocateService.getAdvocateById(validatedData.id);
       
       const response: ApiResponse<typeof advocate> = {
         data: advocate
@@ -122,14 +113,10 @@ export class AdvocateController {
 
   static async getAdvocatesByCity(request: Request): Promise<Response> {
     try {
-      const { searchParams } = new URL(request.url);
-      const city = searchParams.get('city');
+      // Use data protection middleware for validation and sanitization
+      const { data: validatedData } = await DataProtectionMiddleware.validateAndSanitizeGetAdvocatesByCity(request);
       
-      if (!city) {
-        throw new InvalidParameterError('city', 'City parameter is required');
-      }
-      
-      const advocates = await AdvocateService.getAdvocatesByCity(city);
+      const advocates = await AdvocateService.getAdvocatesByCity(validatedData.city);
       
       const response: ApiResponse<typeof advocates> = {
         data: advocates
