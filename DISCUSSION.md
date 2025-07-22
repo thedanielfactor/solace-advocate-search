@@ -123,13 +123,13 @@ server and client.
 
 - **errorHandling.ts** - Consistent error management across the app
 
-## [UI Component Architecture Updates](https://github.com/thedanielfactor/solace-advocate-search/pull/4)
+## PR: 4. [UI Component Architecture Updates](https://github.com/thedanielfactor/solace-advocate-search/pull/4)
 
 - Uses all new components with proper error states
 - Better user experience with loading skeletons
 - Graceful error recovery with retry functionality
 
-## [Performance Enhancements](https://github.com/thedanielfactor/solace-advocate-search/pull/5)
+## PR: 5. [Performance Enhancements](https://github.com/thedanielfactor/solace-advocate-search/pull/5)
 
 #### DB Optomizations
 
